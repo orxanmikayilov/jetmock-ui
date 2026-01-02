@@ -1,0 +1,23 @@
+[
+    {
+      "id": "a1b2c3d4",
+      "name": "a_to_b_service_mock",
+      "isActive": true,
+      "mockCount": 5,
+      "createdAt": "2025-11-20T10:00:00Z"
+    },
+    {
+      "id": "e5f6g7h8",
+      "name": "kafka_listener_tests",
+      "isActive": false,
+      "mockCount": 2,
+      "createdAt": "2025-11-25T14:30:00Z"
+    },
+    {
+      "id": "i9j0k1l2",
+      "name": "payment_gateway_v2",
+      "isActive": true,
+      "mockCount": 12,
+      "createdAt": "2025-11-27T09:15:00Z"
+    }
+  ]
