@@ -4,7 +4,8 @@
 
 import React, {useEffect, useState} from 'react';
 import {useRouter} from "next/navigation";
-
+import { DndContext, closestCenter } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import {MouseSensor, TouchSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {arrayMove} from '@dnd-kit/sortable';
 
@@ -347,8 +348,7 @@ const WorkflowBuilder: React.FC<Props> = ({initialWorkflow, groupId, mockId, isL
         }} className="space-y-8 animate-in fade-in duration-500">
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 min-h-[600px]">
-                <div
-                    className="md:col-span-4 p-8 bg-[#0d0e16]/40 border-2 border-dashed border-white/5 rounded-3xl relative min-h-[500px] backdrop-blur-sm shadow-inner">
+                <div className="md:col-span-4 p-8 bg-[#0d0e16]/40 border-2 border-dashed border-white/5 rounded-3xl relative min-h-[500px] backdrop-blur-sm shadow-inner">
                     <div className="max-w-4xl mx-auto space-y-4">
 
                         {/* 1. CONDITION SECTION (Dəyişməyib) */}
@@ -482,26 +482,6 @@ const WorkflowBuilder: React.FC<Props> = ({initialWorkflow, groupId, mockId, isL
                     </div>
 
                 </div>
-            </div>
-            {/* --- FOOTER ACTIONS --- */}
-            <div className="pt-6 border-t border-white/5 flex justify-end items-center gap-4">
-                <span className="text-xs text-zinc-500 italic">Auto-saving drafted changes...</span>
-                <button
-                    type="submit"
-                    disabled={isLoading || !isWorkflowValid}
-                    className={`px-8 py-3 rounded-xl font-bold text-sm transition-all shadow-lg active:scale-95 ${
-                        !isWorkflowValid || isLoading
-                            ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
-                            : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/20'
-                    }`}
-                >
-                    {isLoading ? (
-                        <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
-                            Saving...
-                        </div>
-                    ) : 'Save Scenario'}
-                </button>
             </div>
         </form>
     );

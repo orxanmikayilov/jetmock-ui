@@ -23,7 +23,7 @@ export default function CollectionsPage() {
         (e: MouseEvent) => {
             if (isResizing) {
                 // Sidebar üçün minimum 200px, maksimum 600px limit qoyuruq
-                const newWidth = e.clientX;
+                const newWidth = e.clientX-76;
                 if (newWidth > 200 && newWidth < 600) {
                     setSidebarWidth(newWidth);
                 }
