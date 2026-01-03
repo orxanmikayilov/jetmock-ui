@@ -351,136 +351,132 @@ const WorkflowBuilder: React.FC<Props> = ({initialWorkflow, groupId, mockId, isL
                 <div className="md:col-span-4 p-8 bg-[#0d0e16]/40 border-2 border-dashed border-white/5 rounded-3xl relative min-h-[500px] backdrop-blur-sm shadow-inner">
                     <div className="max-w-4xl mx-auto space-y-4">
 
-                        {/* 1. CONDITION SECTION (Dəyişməyib) */}
-                        {hasLogic ? (
-                            workflow.filter(item => item.type === 'logic').map(item => (
-                                <WorkflowElement
-                                    key={item.id}
-                                    item={item}
-                                    index={workflow.findIndex(i => i.id === item.id)}
-                                    onRemove={handleRemoveElement}
-                                    onToggleConfig={handleToggleConfig}
-                                    onConfigChange={handleConfigChange}
-                                />
-                            ))
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={() => handleAddElement(ELEMENT_PALETTE.find(e => e.type === 'logic')!)}
-                                className="w-full h-[60px] border border-dashed border-white/10 rounded-[1.2rem] flex items-center justify-center gap-2 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all group"
+                        {/* DND CONTEXT BURADA BAŞLAYIR */}
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={handleDragEnd}
+                        >
+                            <SortableContext
+                                items={workflow.map(i => i.id)}
+                                strategy={verticalListSortingStrategy}
                             >
-                                <Plus size={14} className="text-zinc-600 group-hover:text-amber-400"/>
-                                <span
-                                    className="text-[10px] font-bold text-zinc-500 group-hover:text-zinc-300 uppercase tracking-widest">Add Condition</span>
-                            </button>
-                        )}
 
-                        {/* 2. TRIGGER SECTION (Dəyişməyib) */}
-                        {hasTrigger ? (
-                            workflow.filter(item => item.type === 'trigger' || item.type === 'response').map(item => (
-                                <WorkflowElement
-                                    key={item.id}
-                                    item={item}
-                                    index={workflow.findIndex(i => i.id === item.id)}
-                                    onRemove={handleRemoveElement}
-                                    onToggleConfig={handleToggleConfig}
-                                    onConfigChange={handleConfigChange}
-                                />
-                            ))
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={() => handleAddElement(ELEMENT_PALETTE.find(e => e.type === 'trigger' && e.name.includes('API'))!)}
-                                className="w-full h-[60px] border border-dashed border-white/10 rounded-[1.2rem] flex items-center justify-center gap-2 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all group"
-                            >
-                                <Plus size={14} className="text-zinc-600 group-hover:text-indigo-400"/>
-                                <span
-                                    className="text-[10px] font-bold text-zinc-500 group-hover:text-zinc-300 uppercase tracking-widest">Add Starting Trigger</span>
-                            </button>
-                        )}
-
-                        {/* 3. ACTIONS SECTION - VERSİYA 1 (GRID SELECTOR) */}
-                        <div className="space-y-4 pt-2">
-                            {/* Mövcud Actionlar */}
-                            {workflow.filter(item => item.type === 'action').map(item => (
-                                <WorkflowElement
-                                    key={item.id}
-                                    item={item}
-                                    index={workflow.findIndex(i => i.id === item.id)}
-                                    onRemove={handleRemoveElement}
-                                    onToggleConfig={handleToggleConfig}
-                                    onConfigChange={handleConfigChange}
-                                />
-                            ))}
-
-                            {/* VERSİYA 5 - COMMAND PALETTE STYLE */}
-                            <div className="relative">
-                                {isAddingAction ? (
-                                    <div className="w-full bg-[#11121d] border border-rose-500/30 rounded-[1.2rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                                        {/* Search Input Area */}
-                                        <div className="flex items-center px-4 py-3 border-b border-white/5 bg-white/5">
-                                            <Plus size={16} className="text-rose-500 mr-3 rotate-45" onClick={() => setIsAddingAction(false)} />
-                                            <input
-                                                autoFocus
-                                                placeholder="Search action or type '/'..."
-                                                className="bg-transparent border-none outline-none text-sm text-zinc-200 w-full placeholder:text-zinc-600"
-                                                value={searchTerm}
-                                                onChange={(e) => setSearchTerm(e.target.value)}
-                                            />
-                                        </div>
-
-                                        {/* Result List */}
-                                        <div className="max-h-[220px] overflow-y-auto p-1 custom-scrollbar">
-                                            {ELEMENT_PALETTE
-                                                .filter(e => e.type === 'action' && e.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                                                .map((action) => (
-                                                    <button
-                                                        key={action.name}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            handleAddElement(action);
-                                                            setIsAddingAction(false);
-                                                            setSearchTerm("");
-                                                        }}
-                                                        className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-white/5 group transition-colors"
-                                                    >
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="text-lg grayscale group-hover:grayscale-0 transition-all">{action.icon}</span>
-                                                            <div className="text-left">
-                                                                <div className="text-[11px] font-bold text-zinc-300 group-hover:text-white">{action.name}</div>
-                                                                <div className="text-[9px] text-zinc-600 uppercase">Step {workflow.length + 1}</div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="text-[9px] font-mono text-zinc-700 bg-white/5 px-2 py-1 rounded opacity-0 group-hover:opacity-100 uppercase tracking-widest">
-                                                            Select
-                                                        </div>
-                                                    </button>
-                                                ))}
-
-                                            {/* Heç nə tapılmayanda */}
-                                            {ELEMENT_PALETTE.filter(e => e.type === 'action' && e.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
-                                                <div className="py-8 text-center text-zinc-600 text-[10px] uppercase tracking-widest">
-                                                    No action found
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                {/* 1. CONDITION SECTION */}
+                                {hasLogic ? (
+                                    workflow.filter(item => item.type === 'logic').map(item => (
+                                        <WorkflowElement
+                                            key={item.id}
+                                            item={item}
+                                            index={workflow.findIndex(i => i.id === item.id)}
+                                            onRemove={handleRemoveElement}
+                                            onToggleConfig={handleToggleConfig}
+                                            onConfigChange={handleConfigChange}
+                                        />
+                                    ))
                                 ) : (
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsAddingAction(true)}
-                                        className="w-full h-[54px] border border-dashed border-white/10 rounded-[1.2rem] flex items-center justify-center gap-2 hover:border-rose-500/30 hover:bg-rose-500/5 transition-all group"
-                                    >
-                                        <Plus size={14} className="text-zinc-600 group-hover:text-rose-400" />
-                                        <span className="text-[10px] font-bold text-zinc-500 group-hover:text-zinc-300 uppercase tracking-widest">
-                    Quick Action Search
-                </span>
+                                    <button type="button" onClick={() => handleAddElement(ELEMENT_PALETTE.find(e => e.type === 'logic')!)} className="w-full h-[60px] border border-dashed border-white/10 rounded-[1.2rem] flex items-center justify-center gap-2 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all group">
+                                        <Plus size={14} className="text-zinc-600 group-hover:text-amber-400"/>
+                                        <span className="text-[10px] font-bold text-zinc-500 group-hover:text-zinc-300 uppercase tracking-widest">Add Condition</span>
                                     </button>
                                 )}
-                            </div>
+
+                                {/* 2. TRIGGER SECTION */}
+                                {hasTrigger ? (
+                                    workflow.filter(item => item.type === 'trigger' || item.type === 'response').map(item => (
+                                        <WorkflowElement
+                                            key={item.id}
+                                            item={item}
+                                            index={workflow.findIndex(i => i.id === item.id)}
+                                            onRemove={handleRemoveElement}
+                                            onToggleConfig={handleToggleConfig}
+                                            onConfigChange={handleConfigChange}
+                                        />
+                                    ))
+                                ) : (
+                                    <button type="button" onClick={() => handleAddElement(ELEMENT_PALETTE.find(e => e.type === 'trigger' && e.name.includes('API'))!)} className="w-full h-[60px] border border-dashed border-white/10 rounded-[1.2rem] flex items-center justify-center gap-2 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all group">
+                                        <Plus size={14} className="text-zinc-600 group-hover:text-indigo-400"/>
+                                        <span className="text-[10px] font-bold text-zinc-500 group-hover:text-zinc-300 uppercase tracking-widest">Add Starting Trigger</span>
+                                    </button>
+                                )}
+
+                                {/* 3. ACTIONS SECTION */}
+                                <div className="space-y-4">
+                                    {workflow.filter(item => item.type === 'action').map(item => (
+                                        <WorkflowElement
+                                            key={item.id}
+                                            item={item}
+                                            index={workflow.findIndex(i => i.id === item.id)}
+                                            onRemove={handleRemoveElement}
+                                            onToggleConfig={handleToggleConfig}
+                                            onConfigChange={handleConfigChange}
+                                        />
+                                    ))}
+                                </div>
+
+                            </SortableContext>
+                        </DndContext>
+                        {/* DND CONTEXT BURADA BİTİR */}
+
+                        {/* Quick Action Search (Bu hissə Sortable daxilində olmamalıdır ki, sürüşdürülməsin) */}
+                        <div className="relative mt-4">
+                            {isAddingAction ? (
+                                <div className="w-full bg-[#11121d] border border-rose-500/30 rounded-[1.2rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                    {/* Search Input Area */}
+                                    <div className="flex items-center px-4 py-3 border-b border-white/5 bg-white/5">
+                                        <Plus size={16} className="text-rose-500 mr-3 rotate-45" onClick={() => setIsAddingAction(false)} />
+                                        <input
+                                            autoFocus
+                                            placeholder="Search action or type '/'..."
+                                            className="bg-transparent border-none outline-none text-sm text-zinc-200 w-full placeholder:text-zinc-600"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                    </div>
+
+                                    {/* Result List */}
+                                    <div className="max-h-[220px] overflow-y-auto p-1 custom-scrollbar">
+                                        {ELEMENT_PALETTE
+                                            .filter(e => e.type === 'action' && e.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                                            .map((action) => (
+                                                <button
+                                                    key={action.name}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        handleAddElement(action);
+                                                        setIsAddingAction(false);
+                                                        setSearchTerm("");
+                                                    }}
+                                                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-white/5 group transition-colors"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-lg grayscale group-hover:grayscale-0 transition-all">{action.icon}</span>
+                                                        <div className="text-left">
+                                                            <div className="text-[11px] font-bold text-zinc-300 group-hover:text-white">{action.name}</div>
+                                                            <div className="text-[9px] text-zinc-600 uppercase">Step {workflow.length + 1}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-[9px] font-mono text-zinc-700 bg-white/5 px-2 py-1 rounded opacity-0 group-hover:opacity-100 uppercase tracking-widest">
+                                                        Select
+                                                    </div>
+                                                </button>
+                                            ))}
+
+                                        {/* Heç nə tapılmayanda */}
+                                        {ELEMENT_PALETTE.filter(e => e.type === 'action' && e.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                                            <div className="py-8 text-center text-zinc-600 text-[10px] uppercase tracking-widest">
+                                                No action found
+                                            </div>
+                                        )}
+                                    </div>                                </div>
+                            ) : (
+                                <button type="button" onClick={() => setIsAddingAction(true)} className="w-full h-[54px] border border-dashed border-white/10 rounded-[1.2rem] flex items-center justify-center gap-2 hover:border-rose-500/30 hover:bg-rose-500/5 transition-all group">
+                                    <Plus size={14} className="text-zinc-600 group-hover:text-rose-400" />
+                                    <span className="text-[10px] font-bold text-zinc-500 group-hover:text-zinc-300 uppercase tracking-widest">Quick Action Search</span>
+                                </button>
+                            )}
                         </div>
                     </div>
-
                 </div>
             </div>
         </form>
