@@ -10,6 +10,7 @@ import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/
 
 import WorkflowElement from './WorkflowElement';
 import toast from "react-hot-toast";
+import {Plus} from "lucide-react";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -48,6 +49,7 @@ const WorkflowBuilder: React.FC<Props> = ({initialWorkflow, groupId, mockId, isL
     const [workflow, setWorkflow] = useState<WorkflowItem[]>([]);
     const [mockName, setMockName] = useState(initialWorkflow?.name || '');
     const [dragError, setDragError] = useState<string | null>(null);
+    const hasLogic = workflow.some(w => w.type === 'logic');
 
     useEffect(() => {
         if (initialWorkflow) {
@@ -336,105 +338,108 @@ const WorkflowBuilder: React.FC<Props> = ({initialWorkflow, groupId, mockId, isL
         <form onSubmit={(e) => {
             e.preventDefault();
             if (isWorkflowValid) saveScenarioToBackend();
-        }} className="space-y-6">
+        }} className="space-y-8 animate-in fade-in duration-500">
 
-            <div className="p-4 bg-gray-800 rounded-lg shadow border border-gray-700">
-                <label className="block text-sm font-medium text-gray-300 mb-1">Mock Scenario Name</label>
-                <input type="text" value={mockName} onChange={(e) => setMockName(e.target.value)}
-                       placeholder="User Registration Flow"
-                       className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white" required
-                       disabled={isLoading}/>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 min-h-[600px]">
+                <div className="md:col-span-4 p-8 bg-[#0d0e16]/40 border-2 border-dashed border-white/5 rounded-3xl relative min-h-[500px] backdrop-blur-sm shadow-inner">
+                    <div className="max-w-4xl mx-auto space-y-4">
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 min-h-[500px]">
-
-                <div className="md:col-span-1 p-4 bg-gray-800 rounded-lg space-y-3 shadow">
-
-                    {/* LOGIC / CONDITION */}
-                    <h4 className="font-semibold text-lg text-yellow-300 border-b border-gray-700 pb-2">Condition</h4>
-                    {LOGIC_ELEMENTS.map((element, index) => (
-                        <div
-                            key={index}
-                            onClick={() => handleAddElement(element)}
-                            className={`p-3 rounded-lg border border-gray-600 bg-gray-700 hover:bg-gray-600 cursor-pointer transition-colors text-sm text-white flex items-center gap-2`}
-                        >
-                            <span className="text-lg">{element.icon}</span> {element.name}
-                        </div>
-                    ))}
-
-                    {/* TRIGGERLƏR */}
-                    <h4 className="font-semibold text-lg text-blue-300 border-b border-gray-700 pb-2 mt-6">Starting
-                        Triggers</h4>
-                    {TRIGGER_ELEMENTS.map((element, index) => (
-                        <div
-                            key={index}
-                            onClick={() => handleAddElement(element)}
-                            className={`p-3 rounded-lg border border-gray-600 bg-gray-700 hover:bg-gray-600 cursor-pointer transition-colors text-sm text-white flex items-center gap-2`}
-                        >
-                            <span className="text-lg">{element.icon}</span> {element.name}
-                        </div>
-                    ))}
-
-                    {/* ACTION KOMPONENTLƏR */}
-                    <h4 className="font-semibold text-lg text-pink-300 border-b border-gray-700 pb-2 mt-6">Action
-                        Components</h4>
-                    {ACTION_ELEMENTS.map((element, index) => (
-                        <div
-                            key={index}
-                            onClick={() => handleAddElement(element)}
-                            className={`p-3 rounded-lg border border-gray-600 bg-gray-700 hover:bg-gray-600 cursor-pointer transition-colors text-sm text-white flex items-center gap-2`}
-                        >
-                            <span className="text-lg">{element.icon}</span> {element.name}
-                        </div>
-                    ))}
-                </div>
-
-                <div className="md:col-span-3 p-4 bg-gray-800 rounded-lg shadow border-2 border-dashed border-gray-600">
-                    <h4 className="font-semibold text-lg text-white mb-4">Scenario Flow</h4>
-
-                    {dragError && (
-                        <div className='mb-4 p-3 bg-red-900 border border-red-500 rounded text-red-100 text-sm'>
-                            ⚠️ {dragError}
-                        </div>
-                    )}
-
-                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                        <SortableContext items={workflow.map(i => i.id)} strategy={verticalListSortingStrategy}>
-                            {workflow.length === 0 ? (
-                                <p className="text-gray-500 text-center py-12">Click an element on the left to start the
-                                    flow.</p>
-                            ) : (
-                                workflow.map((item, index) => (
+                        {/* 1. CONDITION SECTION */}
+                        {hasLogic ? (
+                            workflow
+                                .filter(item => item.type === 'logic')
+                                .map(item => (
                                     <WorkflowElement
                                         key={item.id}
                                         item={item}
-                                        index={index}
+                                        // +1 əlavə edirik ki, 0-dan deyil 1-dən başlasın
+                                        index={workflow.findIndex(i => i.id === item.id) }
                                         onRemove={handleRemoveElement}
                                         onToggleConfig={handleToggleConfig}
                                         onConfigChange={handleConfigChange}
                                     />
                                 ))
-                            )}
-                        </SortableContext>
-                    </DndContext>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => handleAddElement(ELEMENT_PALETTE.find(e => e.type === 'logic')!)}
+                                className="w-full h-[60px] border border-dashed border-white/10 rounded-[1.2rem] flex items-center justify-center gap-2 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all group"
+                            >
+                                <Plus size={14} className="text-zinc-600 group-hover:text-amber-400" />
+                                <span className="text-[10px] font-bold text-zinc-500 group-hover:text-zinc-300 uppercase tracking-widest">Add Condition</span>
+                            </button>
+                        )}
 
-                    {isApiTrigger && !hasResponse && (
-                        <div className="mt-4 p-3 bg-red-900 border border-red-600 rounded text-red-200">
-                            ⚠️ API Trigger requires an HTTP Response.
+                        {/* 2. TRIGGER SECTION */}
+                        {hasTrigger ? (
+                            workflow
+                                .filter(item => item.type === 'trigger' || item.type === 'response')
+                                .map(item => (
+                                    <WorkflowElement
+                                        key={item.id}
+                                        item={item}
+                                        index={workflow.findIndex(i => i.id === item.id)} // Global sıra
+                                        onRemove={handleRemoveElement}
+                                        onToggleConfig={handleToggleConfig}
+                                        onConfigChange={handleConfigChange}
+                                    />
+                                ))
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => handleAddElement(ELEMENT_PALETTE.find(e => e.type === 'trigger' && e.name.includes('API'))!)}
+                                className="w-full h-[60px] border border-dashed border-white/10 rounded-[1.2rem] flex items-center justify-center gap-2 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all group"
+                            >
+                                <Plus size={14} className="text-zinc-600 group-hover:text-indigo-400" />
+                                <span className="text-[10px] font-bold text-zinc-500 group-hover:text-zinc-300 uppercase tracking-widest">Add Starting Trigger</span>
+                            </button>
+                        )}
+
+                        {/* 3. ACTIONS SECTION */}
+                        <div className="space-y-4">
+                            {workflow
+                                .filter(item => item.type === 'action')
+                                .map(item => (
+                                    <WorkflowElement
+                                        key={item.id}
+                                        item={item}
+                                        index={workflow.findIndex(i => i.id === item.id)} // Global sıra
+                                        onRemove={handleRemoveElement}
+                                        onToggleConfig={handleToggleConfig}
+                                        onConfigChange={handleConfigChange}
+                                    />
+                                ))}
+
+                            <button
+                                type="button"
+                                onClick={() => handleAddElement(ELEMENT_PALETTE.find(e => e.type === 'action' && e.name.includes('Callback'))!)}
+                                className="w-full h-[60px] border border-dashed border-white/10 rounded-[1.2rem] flex items-center justify-center gap-2 hover:border-rose-500/30 hover:bg-rose-500/5 transition-all group"
+                            >
+                                <Plus size={14} className="text-zinc-600 group-hover:text-rose-400" />
+                                <span className="text-[10px] font-bold text-zinc-500 group-hover:text-zinc-300 uppercase tracking-widest">Add Action Component</span>
+                            </button>
                         </div>
-                    )}
-                </div>
+                    </div>                </div>
             </div>
 
-            <div className="pt-4 flex justify-end">
+            {/* --- FOOTER ACTIONS --- */}
+            <div className="pt-6 border-t border-white/5 flex justify-end items-center gap-4">
+                <span className="text-xs text-zinc-500 italic">Auto-saving drafted changes...</span>
                 <button
                     type="submit"
                     disabled={isLoading || !isWorkflowValid}
-                    className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                        !isWorkflowValid || isLoading ? 'bg-gray-500 text-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'
+                    className={`px-8 py-3 rounded-xl font-bold text-sm transition-all shadow-lg active:scale-95 ${
+                        !isWorkflowValid || isLoading
+                            ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-50'
+                            : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/20'
                     }`}
                 >
-                    {isLoading ? 'Saving...' : 'Save Scenario'}
+                    {isLoading ? (
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Saving...
+                        </div>
+                    ) : 'Save Scenario'}
                 </button>
             </div>
         </form>
